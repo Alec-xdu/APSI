@@ -4,6 +4,8 @@
 # Source files in this directory
 set(APSI_SOURCE_FILES ${APSI_SOURCE_FILES}
     ${CMAKE_CURRENT_LIST_DIR}/plaintext_powers.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/secret_sharing_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/secret_shared_powers.cpp
     ${CMAKE_CURRENT_LIST_DIR}/receiver.cpp
 )
 
@@ -12,6 +14,8 @@ install(
     FILES
         ${CMAKE_CURRENT_LIST_DIR}/itt.h
         ${CMAKE_CURRENT_LIST_DIR}/match_record.h
+        ${CMAKE_CURRENT_LIST_DIR}/secret_sharing_manager.h
+        ${CMAKE_CURRENT_LIST_DIR}/secret_shared_powers.h
         ${CMAKE_CURRENT_LIST_DIR}/receiver.h
     DESTINATION
         ${APSI_INCLUDES_INSTALL_DIR}/apsi

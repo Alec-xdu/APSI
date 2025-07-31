@@ -159,6 +159,15 @@ else()
     message(STATUS "jsoncpp: found")
 endif()
 
+# OpenSSL: for cryptographic operations in secret sharing
+find_package(OpenSSL REQUIRED)
+if (NOT OpenSSL_FOUND)
+    message(FATAL_ERROR "OpenSSL: not found")
+else()
+    message(STATUS "OpenSSL: found")
+    message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
+endif()
+
 # [Option] APSI_USE_LOG4CPLUS (default: ON)
 set(APSI_USE_LOG4CPLUS_OPTION_STR "Use Log4cplus for logging")
 option(APSI_USE_LOG4CPLUS ${APSI_USE_LOG4CPLUS_OPTION_STR} ON)
@@ -265,7 +274,9 @@ target_link_libraries(apsi
     PUBLIC SEAL::seal
     PUBLIC Kuku::kuku
     PUBLIC flatbuffers::flatbuffers
-    PUBLIC jsoncpp_static)
+    PUBLIC jsoncpp_static
+    PUBLIC OpenSSL::SSL
+    PUBLIC OpenSSL::Crypto)
 if(APSI_USE_LOG4CPLUS)
     target_link_libraries(apsi PUBLIC log4cplus::log4cplus)
 endif()
