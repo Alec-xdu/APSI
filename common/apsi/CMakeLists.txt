@@ -7,6 +7,7 @@ set(APSI_SOURCE_FILES ${APSI_SOURCE_FILES}
     ${CMAKE_CURRENT_LIST_DIR}/log.cpp
     ${CMAKE_CURRENT_LIST_DIR}/powers.cpp
     ${CMAKE_CURRENT_LIST_DIR}/psi_params.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/secret_sharing_tee.cpp
     ${CMAKE_CURRENT_LIST_DIR}/thread_pool_mgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/version.cpp
 )
@@ -22,6 +23,7 @@ install(
         ${CMAKE_CURRENT_LIST_DIR}/requests.h
         ${CMAKE_CURRENT_LIST_DIR}/responses.h
         ${CMAKE_CURRENT_LIST_DIR}/seal_object.h
+        ${CMAKE_CURRENT_LIST_DIR}/secret_sharing_tee.h
         ${CMAKE_CURRENT_LIST_DIR}/thread_pool_mgr.h
         ${CMAKE_CURRENT_LIST_DIR}/version.h
     DESTINATION
