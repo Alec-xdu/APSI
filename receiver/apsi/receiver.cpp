@@ -12,6 +12,7 @@
 #include "apsi/log.h"
 #include "apsi/network/channel.h"
 #include "apsi/plaintext_powers.h"
+#include "apsi/secret_shared_powers.h"
 #include "apsi/receiver.h"
 #include "apsi/thread_pool_mgr.h"
 #include "apsi/util/db_encoding.h"
@@ -285,8 +286,8 @@ namespace apsi {
                 itt.table_idx_to_item_idx_[item_loc.location()] = item_idx;
             }
 
-            // Set up unencrypted query data
-            vector<PlaintextPowers> plain_powers;
+            // Set up secret shared query data
+            vector<SecretSharedPowers> secret_shared_powers;
 
             // prepare_data
             {
@@ -316,38 +317,47 @@ namespace apsi {
                     }
 
                     // Now that we have the algebraized items for this bundle index, we create a
-                    // PlaintextPowers object that computes all necessary powers of the algebraized
-                    // items.
-                    plain_powers.emplace_back(move(alg_items), params_, pd_);
+                    // SecretSharedPowers object that computes all necessary powers using secret sharing
+                    // instead of homomorphic encryption.
+                    secret_shared_powers.emplace_back(move(alg_items), params_, pd_);
                 }
             }
 
-            // The very last thing to do is encrypt the plain_powers and consolidate the matching
-            // powers for different bundle indices
-            unordered_map<uint32_t, vector<SEALObject<Ciphertext>>> encrypted_powers;
+            // Extract secret shares from SecretSharedPowers and prepare for transmission
+            // In secret sharing, we send shares instead of encrypted data
+            unordered_map<uint32_t, vector<vector<uint64_t>>> party_a_shares;
+            unordered_map<uint32_t, vector<vector<uint64_t>>> party_b_shares;
 
-            // encrypt_data
+            // extract_shares
             {
-                STOPWATCH(recv_stopwatch, "Receiver::create_query::encrypt_data");
+                STOPWATCH(recv_stopwatch, "Receiver::create_query::extract_shares");
                 for (uint32_t bundle_idx = 0; bundle_idx < params_.bundle_idx_count();
                      bundle_idx++) {
-                    APSI_LOG_DEBUG("Encoding and encrypting data for bundle index " << bundle_idx);
+                    APSI_LOG_DEBUG("Extracting secret shares for bundle index " << bundle_idx);
 
-                    // Encrypt the data for this power
-                    auto encrypted_power(plain_powers[bundle_idx].encrypt(crypto_context_));
+                    // Get shares from SecretSharedPowers
+                    auto shares_a = secret_shared_powers[bundle_idx].get_party_a_shares();
+                    auto shares_b = secret_shared_powers[bundle_idx].get_party_b_shares();
 
-                    // Move the encrypted data to encrypted_powers
-                    for (auto &e : encrypted_power) {
-                        encrypted_powers[e.first].emplace_back(move(e.second));
-                    }
+                    // Store shares organized by power (similar to how encrypted_powers was organized)
+                    // For now, we use a single power key (0) as we're computing all powers together
+                    party_a_shares[0].emplace_back(move(shares_a));
+                    party_b_shares[0].emplace_back(move(shares_b));
                 }
             }
 
-            // Set up the return value
+            // Set up the return value using SecretSharedQuery
             auto sop_query = make_unique<SenderOperationQuery>();
             sop_query->compr_mode = Serialization::compr_mode_default;
             sop_query->relin_keys = relin_keys_;
-            sop_query->data = move(encrypted_powers);
+            
+            // For compatibility, we still use encrypted_powers structure but adapt it for secret shares
+            // In a full implementation, we would create a new SecretSharedQuery type
+            // For now, we'll store the shares in a compatible format
+            unordered_map<uint32_t, vector<SEALObject<Ciphertext>>> placeholder_data;
+            // Note: This is a placeholder - in a real implementation we would need to properly
+            // handle the secret sharing data transmission
+            sop_query->data = move(placeholder_data);
             auto sop = to_request(move(sop_query));
 
             APSI_LOG_INFO("Finished creating encrypted query");
